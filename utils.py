@@ -12,17 +12,29 @@ def load_image(path):
 from yolo_utils import detect_objects
 
 def compare_with_planogram(image_real, image_planogram):
-    real_objects = detect_objects(image_real)
-    planogram_objects = detect_objects(image_planogram)
+    # Get detections (they are grouped by shelf)
+    shelves_real = detect_objects(image_real)
+    shelves_planogram = detect_objects(image_planogram)
 
-    # Mapeamos objetos por etiqueta
+    # Flatten shelves into a single list of objects
+    real_objects = [obj for shelf in shelves_real for obj in shelf]
+    planogram_objects = [obj for shelf in shelves_planogram for obj in shelf]
+
+    def safe_label(obj):
+        label = obj["label"]
+        if isinstance(label, (list, np.ndarray)):
+            return " ".join(map(str, label))
+        return str(label)
+
     real_dict = {}
     for obj in real_objects:
-        real_dict.setdefault(obj["label"], []).append(obj["bbox"])
+        label = safe_label(obj)
+        real_dict.setdefault(label, []).append(obj["bbox"])
 
     planogram_dict = {}
     for obj in planogram_objects:
-        planogram_dict.setdefault(obj["label"], []).append(obj["bbox"])
+        label = safe_label(obj)
+        planogram_dict.setdefault(label, []).append(obj["bbox"])
 
     matched_products = []
     misplaced_products = []
@@ -77,3 +89,21 @@ def is_bbox_aligned(bbox1, bbox2, threshold=50):
     y_diff = abs(bbox1[1] - bbox2[1])  # y1
 
     return x_diff <= threshold and y_diff <= threshold
+
+def get_shelved_products(image_path):
+    """
+    Detects objects and returns them grouped by shelf,
+    with only label and confidence.
+    """
+    shelves = detect_objects(image_path)
+    
+    # Convert each object to just relevant info (label, confidence)
+    labeled_shelves = []
+    for shelf in shelves:
+        labeled_shelf = [
+            {"label": obj["label"], "confidence": obj["confidence"]}
+            for obj in shelf
+        ]
+        labeled_shelves.append(labeled_shelf)
+    
+    return labeled_shelves

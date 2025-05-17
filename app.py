@@ -3,7 +3,7 @@ from werkzeug.utils import secure_filename
 import os
 import uuid
 from flask_cors import CORS
-from utils import compare_with_planogram
+from utils import compare_with_planogram, get_shelved_products
 
 # ==============================
 # Configuración inicial
@@ -125,5 +125,28 @@ def list_planograms():
 if __name__ == '__main__':
     os.makedirs(UPLOAD_FOLDER, exist_ok=True)
     os.makedirs(PLAN_FOLDER, exist_ok=True)
+
+    import sys
+    if '--test' in sys.argv:
+        test_image = 'uploads/20250516_173049-1.jpg'
+        test_planogram = 'planograms/20250516_172922.jpg'
+
+        print("=== REAL SHELVES ===")
+        real_shelves = get_shelved_products(test_image)
+        for i, shelf in enumerate(real_shelves):
+            print(f"\nShelf {i+1}:")
+            for item in shelf:
+                print(f" - {item['label']} ({item['confidence']:.2f})")
+
+        print("\n=== PLANOGRAM SHELVES ===")
+        planogram_shelves = get_shelved_products(test_planogram)
+        for i, shelf in enumerate(planogram_shelves):
+            print(f"\nShelf {i+1}:")
+            for item in shelf:
+                print(f" - {item['label']} ({item['confidence']:.2f})")
+
+        print("\n=== COMPARISON RESULT ===")
+        result = compare_with_planogram(test_image, test_planogram)
+        print("Test Result:", result)
 
     app.run(debug=True, host='127.0.0.1', port=5000)

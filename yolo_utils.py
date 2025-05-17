@@ -20,12 +20,17 @@ def detect_objects(image_path):
             center_x = (bbox[0] + bbox[2]) / 2
             center_y = (bbox[1] + bbox[3]) / 2
 
+            length_x = bbox[2] - bbox[0]
+            length_y = bbox[3] - bbox[1]
+
             detected.append({
                 "label": label,
                 "confidence": confidence,
                 "bbox": bbox,
                 "center_x": center_x,
-                "center_y": center_y
+                "center_y": center_y,
+                "length_x": length_x,
+                "lenght_y": length_y
             })
 
         # --- Shelf grouping logic ---
@@ -37,7 +42,7 @@ def detect_objects(image_path):
 
         for obj in sorted_by_y[1:]:
             last_obj = current_shelf[-1]
-            
+            shelf_threshold = last_obj["lenght_y"]
             if abs(obj["center_y"] - last_obj["center_y"]) <= shelf_threshold:
                 current_shelf.append(obj)
             else:

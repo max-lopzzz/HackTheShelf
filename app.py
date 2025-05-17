@@ -149,4 +149,8 @@ if __name__ == '__main__':
         result = compare_with_planogram(test_image, test_planogram)
         print("Test Result:", result)
 
+        app.run(debug=False, use_reloader=False)
+    else:
+        app.run(debug=True, host='127.0.0.1', port=5000)
+
     app.run(debug=True, host='127.0.0.1', port=5000)

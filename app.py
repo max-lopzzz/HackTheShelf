@@ -1,77 +1,129 @@
-# Importamos Flask y algunas utilidades
 from flask import Flask, request, jsonify, send_from_directory
-from utils import load_image, compare_with_planogram
+from werkzeug.utils import secure_filename
 import os
+import uuid
+from flask_cors import CORS
+from utils import compare_with_planogram
 
-# Creamos la aplicación Flask
+# ==============================
+# Configuración inicial
+# ==============================
 app = Flask(__name__)
+CORS(app)
 
-# Definimos las carpetas donde se guardarán las imágenes y los planogramas
 UPLOAD_FOLDER = 'uploads'
 PLAN_FOLDER = 'planograms'
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
 
-# Configuramos la app para usar esas carpetas
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['PLAN_FOLDER'] = PLAN_FOLDER
 
-# Ruta principal: solo devuelve un mensaje de confirmación
+# ==============================
+# Funciones auxiliares
+# ==============================
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+def error_response(message, code=400):
+    return jsonify({"success": False, "error": message, "code": code}), code
+
+def success_response(data=None):
+    return jsonify({"success": True, "result": data})
+
+# ==============================
+# Rutas de la API
+# ==============================
+
 @app.route('/')
 def index():
+    """
+    Ruta raíz: Muestra un mensaje de bienvenida.
+    Ejemplo: GET http://localhost:5000/
+    """
     return "Planomagic Backend API - Ready to validate planograms!"
 
-# Ruta para subir una imagen desde el cliente (POST)
 @app.route('/upload', methods=['POST'])
 def upload_image():
-    # Verificamos que se haya incluido un archivo en la solicitud
+    """
+    Sube una imagen real del punto de venta.
+    Campo requerido en formulario: 'image'
+    
+    Ejemplo usando fetch:
+    const formData = new FormData();
+    formData.append("image", fileInput.files[0]);
+    fetch("http://localhost:5000/upload", {
+      method: "POST",
+      body: formData,
+    });
+    """
     if 'image' not in request.files:
-        return jsonify({"error": "No image provided"}), 400
+        return error_response("No image provided", 400)
 
     file = request.files['image']
-    
-    # Verificamos que el archivo tenga un nombre válido
+
     if file.filename == '':
-        return jsonify({"error": "Empty filename"}), 400
+        return error_response("Empty filename", 400)
 
-    # Guardamos la imagen en la carpeta uploads
-    filepath = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
+    if not allowed_file(file.filename):
+        return error_response("File type not allowed. Use .jpg, .jpeg or .png", 400)
+
+    # Usar nombre seguro y único
+    ext = os.path.splitext(file.filename)[1]
+    filename = f"{uuid.uuid4()}{ext}"
+    filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+
     file.save(filepath)
-    
-    # Devolvemos una respuesta con la ruta donde se guardó la imagen
-    return jsonify({"message": "Image uploaded", "path": filepath})
 
-# Ruta para comparar una imagen real contra un planograma (POST)
+    return success_response({
+        "message": "Image uploaded successfully",
+        "path": filepath
+    })
+
 @app.route('/compare', methods=['POST'])
 def compare():
-    # Obtenemos los datos del cuerpo de la solicitud
+    """
+    Compara una imagen subida contra un planograma.
+
+    Body esperado (JSON):
+    {
+      "image_path": "uploads/foto.jpg",
+      "planogram": "planograma1"
+    }
+    """
     data = request.get_json()
     image_path = data.get('image_path')
     planogram_name = data.get('planogram')
 
-    # Validamos que ambos parámetros estén presentes
     if not image_path or not planogram_name:
-        return jsonify({"error": "Missing parameters"}), 400
+        return error_response("Missing parameters: image_path and planogram are required", 400)
 
-    # Construimos la ruta completa del planograma
     planogram_path = os.path.join(app.config['PLAN_FOLDER'], planogram_name + ".jpg")
 
-    # Verificamos que ambos archivos existan
-    if not os.path.exists(image_path) or not os.path.exists(planogram_path):
-        return jsonify({"error": "Image or planogram not found"}), 404
+    if not os.path.exists(image_path):
+        return error_response(f"Image not found at {image_path}", 404)
 
-    # Llamamos a la función que compara ambas imágenes
+    if not os.path.exists(planogram_path):
+        return error_response(f"Planogram '{planogram_name}' not found", 404)
+
+    # Llamamos a tu función de comparación
     result = compare_with_planogram(image_path, planogram_path)
 
-    # Devolvemos el resultado como JSON
-    return jsonify(result)
+    return success_response(result)
 
-# Punto de entrada del programa
+@app.route('/planograms', methods=['GET'])
+def list_planograms():
+    """
+    Devuelve una lista con los nombres de los planogramas disponibles.
+    """
+    plans = [f.replace(".jpg", "") for f in os.listdir(PLAN_FOLDER) if f.endswith(".jpg")]
+    return success_response(plans)
+
+# ==============================
+# Inicio de la aplicación
+# ==============================
 if __name__ == '__main__':
-    # Creamos las carpetas necesarias si no existen
     os.makedirs(UPLOAD_FOLDER, exist_ok=True)
     os.makedirs(PLAN_FOLDER, exist_ok=True)
 
-    result = compare_with_planogram(UPLOAD_FOLDER, PLAN_FOLDER)
-    print(result)
-
-    # Iniciamos el servidor Flask en modo debug
     app.run(debug=True, host='127.0.0.1', port=5000)

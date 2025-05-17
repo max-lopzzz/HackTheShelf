@@ -70,5 +70,8 @@ if __name__ == '__main__':
     os.makedirs(UPLOAD_FOLDER, exist_ok=True)
     os.makedirs(PLAN_FOLDER, exist_ok=True)
 
+    result = compare_with_planogram(UPLOAD_FOLDER, PLAN_FOLDER)
+    print(result)
+
     # Iniciamos el servidor Flask en modo debug
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    app.run(debug=True, host='127.0.0.1', port=5000)

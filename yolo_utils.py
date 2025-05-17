@@ -36,10 +36,11 @@ def remove_overlapping_objects(shelf):
 def detect_objects(image_path):
     results = model(image_path)
     detected = []
-
+   
     for result in results:
         boxes = result.boxes
         names = model.names  # class IDs to labels
+        result.show()
 
         for box in boxes:
             class_id = int(box.cls)
@@ -62,11 +63,12 @@ def detect_objects(image_path):
                 "length_x": length_x,
                 "lenght_y": length_y
             })
-
+            
         # --- Shelf grouping logic ---
+        detected = [obj for obj in detected if obj["label"] != "AGUA BIOLEVE 1.5 LTS"] #elimina agua
         shelf_threshold = 100  # vertical distance threshold to separate shelves
         sorted_by_y = sorted(detected, key=lambda obj: obj["center_y"])
-
+        
         shelves = []
         current_shelf = [sorted_by_y[0]]
 

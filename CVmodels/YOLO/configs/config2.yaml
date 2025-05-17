@@ -1,0 +1,6 @@
+path: /Users/ricardosalgadob/Desktop/HackTheShelf2025/YOLO
+train: coco8/train
+val: coco8/val
+
+# Classes
+nc: 79

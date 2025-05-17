@@ -1,0 +1,53 @@
+path: '/Users/ricardosalgadob/Desktop/HackTheShelf2025/YOLO'
+train: 'train'
+val: 'valid'
+test: 'test'
+
+names:
+  0: Atun Dolores aceite 295gr lata
+  1: ATUN DOLORES EN ACEITE 130GRS
+  2: Atun Mazatun Agua Sin Soya 130grs
+  3: DOLORES ENSALADA CON VERDURAS MAXI CUP CAN 240gr
+  4: Dolores SURFY  Cup Can Elotitos 24/ 135 gr
+  5: Ensalada Atun Mazatun  CupCan
+  6: Papel aluminio festivo rollo 76 m X 30 cm pz
+  7: PLC NUTRALAT FORTE 1.5 LT
+  8: PLC NUTRALAT FORTE 1LT
+  9: La Lechera Sirve Facil 335gr Bote
+  10: CARNATION Leche Evaporada 720g
+  11: Azucar Estandar La Posada 1 kg
+  12: Arroz La Posada 900 gr
+  13: CAFE SOLUBLE ANDATTI DESCAFEINADO 275G
+  14: CAFE SOLUBLE ANDATTI 275G
+  15: ACEITE VEGETAL LA POSADA 800 ML
+  16: Aceite Comestible Nutrioli 850ml
+  17: ACEITE NUTRIOLI 400 ML
+  18: Sabrosano Mantequila 850 ml
+  19: Frijol La Sierra Chorizo 430 bolsa
+  20: Frijol Pinto La Posada 900gr
+  21: Chicharron de Cerdo Natural Bitz 120 gr
+  22: Chicharron de Cerdo Intenso Bitz 120 gr.
+  23: CHEETOS TORCIDITOS 240GR
+  24: RUFFLES QUESO 185GR
+  25: Papas Chips Barcel 170 gr bolsa con sal
+  26: Takis Blue 75g
+  27: AGUA BIOLEVE 1.5 LTS
+  28: AGUA ALCALINA VITAWA 1.5 LTS
+  29: AGUA ALCALINA VITAWA 1LT
+  30: Agua Bioleve 1L 6pack
+  31: NESTLE LA LECHERA CONDENSADA DOYPACK 209 GR
+  32: Biolevel8pack
+  33: Tikytin Ultra talla 5 X-Grande 36/4
+  34: Panales Tikytin 14pz T4
+  35: Panales Tikytin 14pz T5
+  36: Shampoo KleenBebe Manzanilla 250ml
+  37: Aceite para bebe Baby Magic Mennen 100 ml bote
+  38: DETERGENTE AZALEA MULTIUSOS 800G
+  39: PAPEL HIGIENICO AZALEA 4 ROLLOS 350 HOJAS
+  40: PAPEL HIGIENICO AZALEA 4S CON AROMA
+  41: Papel Regio Rinde 4pz
+  42: Higienico Suavel 325h 4rollos
+  43: Higienico Cottonelle Elegance XL 252h
+  44: Hig Petalo UltraJumbo 6s 234h
+  45: Papel Higiénico Azálea 6 Rollos 500 Hojas
+  46: anaquel

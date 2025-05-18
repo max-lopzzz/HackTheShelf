@@ -3,11 +3,11 @@ from werkzeug.utils import secure_filename
 import os
 import uuid
 from flask_cors import CORS
-from utils import compare_with_planogram, get_shelved_products
+from utils import compare_with_planogram
+import sys
+import cv2
+from yolo_utils import detect_objects  # Make sure this import works
 
-# ==============================
-# Configuración inicial
-# ==============================
 app = Flask(__name__)
 CORS(app)
 
@@ -18,9 +18,6 @@ ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['PLAN_FOLDER'] = PLAN_FOLDER
 
-# ==============================
-# Funciones auxiliares
-# ==============================
 def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
@@ -30,10 +27,6 @@ def error_response(message, code=400):
 
 def success_response(data=None):
     return jsonify({"success": True, "result": data})
-
-# ==============================
-# Rutas de la API
-# ==============================
 
 @app.route('/')
 def index():
@@ -107,7 +100,7 @@ def compare():
         return error_response(f"Planogram '{planogram_name}' not found", 404)
 
     # Llamamos a tu función de comparación
-    result = compare_with_planogram(image_path, planogram_path)
+    result = compare_with_planogram(real_shelves, planogram_shelves)
 
     return success_response(result)
 
@@ -119,37 +112,68 @@ def list_planograms():
     plans = [f.replace(".jpg", "") for f in os.listdir(PLAN_FOLDER) if f.endswith(".jpg")]
     return success_response(plans)
 
-# ==============================
-# Inicio de la aplicación
-# ==============================
 if __name__ == '__main__':
     os.makedirs(UPLOAD_FOLDER, exist_ok=True)
     os.makedirs(PLAN_FOLDER, exist_ok=True)
 
-    import sys
     if '--test' in sys.argv:
-        test_image = 'uploads/20250516_173049-1.jpg'
-        test_planogram = 'planograms/20250516_172922.jpg'
+        upload_dir = app.config['UPLOAD_FOLDER']
+        plan_dir = app.config['PLAN_FOLDER']
+        output_dir = "output"
+        os.makedirs(output_dir, exist_ok=True)
 
+        # --- REAL IMAGE ---
+        image_files = [f for f in os.listdir(upload_dir) if allowed_file(f)]
+        if not image_files:
+            print("No valid images found in", upload_dir)
+            exit(1)
+
+        image_path = os.path.join(upload_dir, image_files[0])
+        print(f"Using real image: {image_path}")
+
+        # Run detection and save annotated image
+        annotated_real, real_shelves = detect_objects(image_path)
+        if not real_shelves:
+            real_shelves = []
+        real_output_path = os.path.join(output_dir, "real_" + os.path.basename(image_path))
+        cv2.imwrite(real_output_path, annotated_real)
+        print(f"Saved annotated real image to: {real_output_path}")
+
+        # Print shelves
         print("=== REAL SHELVES ===")
-        real_shelves = get_shelved_products(test_image)
         for i, shelf in enumerate(real_shelves):
             print(f"\nShelf {i+1}:")
             for item in shelf:
                 print(f" - {item['label']} ({item['confidence']:.2f})")
 
-        print("\n=== PLANOGRAM SHELVES ===")
-        planogram_shelves = get_shelved_products(test_planogram)
+        # --- PLANOGRAM IMAGE ---
+        plan_files = [f for f in os.listdir(plan_dir) if allowed_file(f)]
+        if not plan_files:
+            print("No valid planograms found in", plan_dir)
+            exit(1)
+
+        planogram_path = os.path.join(plan_dir, plan_files[0])
+        print(f"Using planogram: {planogram_path}")
+
+        # Run detection and save annotated image
+        annotated_planogram, planogram_shelves = detect_objects(planogram_path)
+        if not planogram_shelves:
+            planogram_shelves = []
+        planogram_output_path = os.path.join(output_dir, "planogram_" + os.path.basename(planogram_path))
+        cv2.imwrite(planogram_output_path, annotated_planogram)
+        print(f"Saved annotated planogram to: {planogram_output_path}")
+
+        # Print shelves
+        print("=== PLANOGRAM SHELVES ===")
         for i, shelf in enumerate(planogram_shelves):
             print(f"\nShelf {i+1}:")
             for item in shelf:
                 print(f" - {item['label']} ({item['confidence']:.2f})")
 
+        # --- COMPARISON ---
         print("\n=== COMPARISON RESULT ===")
-        result = compare_with_planogram(test_image, test_planogram)
+        result = compare_with_planogram(real_shelves, planogram_shelves)
         print("Test Result:", result)
-
-        app.run(debug=False, use_reloader=False)
     else:
         app.run(debug=True, host='127.0.0.1', port=5000)
 

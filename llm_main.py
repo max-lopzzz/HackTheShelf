@@ -10,7 +10,7 @@ from collections import Counter
 
 from yolo_utils import detect_objects
 
-def main():
+def main(planogram_path="uploads/foo.png", real_path="planograms/bar.jpg"):
     # Configurar las llaves de las APIs
     load_dotenv()
 

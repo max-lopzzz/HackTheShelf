@@ -3,7 +3,7 @@ import numpy as np
 from PIL import Image
 import cv2
 
-model = YOLO("model006.pt")
+model = YOLO("model005.pt")
 
 def remove_overlapping_objects(shelf):
     # Skip processing if label is 'anaquel'
@@ -98,4 +98,4 @@ def detect_objects(image_path):
             print(f"  {item['label']}")
 
     # Return both annotated image and shelves
-    return annotated_img, shelves  # ✅ Now returns image and detections
+    return annotated_img, shelves

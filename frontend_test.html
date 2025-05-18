@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Subir Imagen</title>
+</head>
+<body>
+  <h2>Sube una imagen</h2>
+  <input type="file" id="imageInput" />
+  <button onclick="uploadImage()">Enviar al backend</button>
+
+  <script>
+    function uploadImage() {
+      const input = document.getElementById('imageInput');
+      if (!input.files.length) {
+        alert("Por favor selecciona una imagen.");
+        return;
+      }
+
+      const file = input.files[0];
+
+      const formData = new FormData();
+      formData.append("image", file);
+
+      fetch("http://localhost:5000/upload", {
+        method: "POST",
+        body: formData
+      })
+      .then(response => response.json())
+      .then(data => {
+        console.log("Respuesta del backend:", data);
+        alert("Imagen subida correctamente!");
+      })
+      .catch(error => {
+        console.error("Error:", error);
+        alert("Hubo un error al subir la imagen.");
+      });
+    }
+  </script>
+</body>
+</html>
